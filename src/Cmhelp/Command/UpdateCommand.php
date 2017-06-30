@@ -39,13 +39,8 @@ class UpdateCommand extends Command
         $remoteFileContent = file_get_contents(self::UPDATE_URL);
         $remoteHash = md5($remoteFileContent);
 
-        if ($localHash == $remoteHash) {
-            $output->writeln("Already at latest version.");
-        } else {
-            $output->writeln("Installing...");
-            file_put_contents($currentFile, $remoteFileContent);
-            $output->writeln("Updated.");
-        }
-
+        $output->writeln("Installing...");
+        file_put_contents($currentFile, $remoteFileContent);
+        $output->writeln("Updated.");
     }
 }
