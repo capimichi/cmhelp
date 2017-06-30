@@ -1,6 +1,6 @@
 <?php
 
-namespace Cmhelp\Command;
+namespace Cmhelp\Command\Xdebug;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,6 +19,6 @@ class PhpXdebugCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        
+
     }
 }

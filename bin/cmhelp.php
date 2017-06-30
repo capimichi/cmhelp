@@ -1,8 +1,9 @@
 <?php
 require dirname(__DIR__) . '/vendor/autoload.php';
+require dirname(__DIR__) . '/src/autoload.php';
 
-use Cmhelp\Command\PhpXdebugActivateCommand;
-use Cmhelp\Command\PhpXdebugCommand;
+use Cmhelp\Command\Xdebug\PhpXdebugActivateCommand;
+use Cmhelp\Command\Xdebug\PhpXdebugCommand;
 use Symfony\Component\Console\Application;
 
 $application = new Application();
