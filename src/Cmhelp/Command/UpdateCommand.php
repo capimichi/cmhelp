@@ -24,6 +24,27 @@ class UpdateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $currentFile = \Phar::running(false);
-        $output->writeln($currentFile);
+
+        if (!is_readable($currentFile)) {
+            die("Cannot read {$currentFile}");
+        }
+
+        if (!is_writable($currentFile)) {
+            die("Cannot write {$currentFile}");
+        }
+
+        $localHash = md5(file_get_contents($currentFile));
+
+        $remoteFileContent = file_get_contents(self::UPDATE_URL);
+        $remoteHash = md5($remoteFileContent);
+
+        if ($localHash == $remoteHash) {
+            $output->writeln("Already last version");
+        } else {
+            $output->writeln("Installing...");
+            file_put_contents($currentFile, $remoteFileContent);
+            $output->writeln("Updated.");
+        }
+
     }
 }
