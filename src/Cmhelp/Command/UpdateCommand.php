@@ -24,6 +24,7 @@ class UpdateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $currentFile = \Phar::running(false);
+        $output->writeln("Connecting...");
 
         if (!is_readable($currentFile)) {
             die("Cannot read {$currentFile}");
@@ -39,7 +40,7 @@ class UpdateCommand extends Command
         $remoteHash = md5($remoteFileContent);
 
         if ($localHash == $remoteHash) {
-            $output->writeln("Already last version");
+            $output->writeln("Already at latest version.");
         } else {
             $output->writeln("Installing...");
             file_put_contents($currentFile, $remoteFileContent);
