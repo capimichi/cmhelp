@@ -1,0 +1,29 @@
+<?php
+
+namespace Cmhelp\Command;
+
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\Question;
+
+class UpdateCommand extends Command
+{
+
+    const UPDATE_URL = "https://github.com/capimichi/cmhelp/blob/master/build/cmhelp.phar?raw=true";
+
+    protected function configure()
+    {
+        $this
+            ->setName('update')
+            ->setDescription('Update executable.')
+            ->setHelp('This command allows you to update cmhelp...');
+
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $currentFile = \Phar::running(false);
+        $output->writeln($currentFile);
+    }
+}
