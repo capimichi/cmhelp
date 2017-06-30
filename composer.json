@@ -1,0 +1,12 @@
+{
+    "name": "capimichi/cmhelp",
+    "authors": [
+        {
+            "name": "Michele Capicchioni",
+            "email": "capimichi@gmail.com"
+        }
+    ],
+    "require": {
+        "symfony/console": "^3.3"
+    }
+}
