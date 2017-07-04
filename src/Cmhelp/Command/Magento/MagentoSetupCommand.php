@@ -65,6 +65,10 @@ class MagentoSetupCommand extends Command
 
         } else {
             $vhostConfigPath = "/etc/apache2/sites-available/{$hostName}";
+            $vhostProdConfigPath = "/etc/apache2/sites-enabled/{$hostName}";
+            if (!is_writable(dirname($vhostConfigPath)) || !is_writable(dirname($vhostProdConfigPath))) {
+                die("Cannot write virtual host configuration");
+            }
             $vhostContent = "
                 <VirtualHost *:80>
                     ServerName {$hostName}
@@ -75,10 +79,23 @@ class MagentoSetupCommand extends Command
                 </VirtualHost>
                 # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
             ";
-            if (!is_writable(dirname($vhostConfigPath))) {
-                die("Cannot write virtual host configuration");
-            }
             file_put_contents($vhostConfigPath, $vhostContent);
+
+            if (!file_exists($vhostProdConfigPath)) {
+                symlink($vhostConfigPath, $vhostProdConfigPath);
+            }
+
+            $hostsPath = "/etc/hosts";
+            if (!is_readable($hostsPath) || !is_writable($hostsPath)) {
+                die("Cannot read/write {$hostsPath}");
+            }
+            $hostsContent = file_get_contents($hostsPath);
+
+            if (!preg_match("/{$host}\t{$hostName}/is", $hostsContent)) {
+                $hostsContent .= "\n{$host}\t{{$hostName}";
+            }
+
+            file_put_contents($hostsPath, $hostsContent);
         }
 
         $localXmlPath = rtrim($hostPath, "/") . "/app/etc/local.xml";
@@ -95,6 +112,28 @@ class MagentoSetupCommand extends Command
         $localXmlContent = preg_replace('/<session_save>.*?<\/session_save>/is', "<session_save><![CDATA[{$sessionSave}]]></session_save>", $localXmlContent);
         file_put_contents($localXmlPath, $localXmlContent);
 
+        if ($dbFilePath) {
+            // Import DB
+            $conn = new \mysqli($host, $dbUser, $dbPwd);
+            if ($conn->connect_error) {
+                die("Impossibile connetersi al database: " . $conn->connect_error);
+            }
+            $dropQuery = "DROP DATABASE {$dbName}";
+            $createQuery = "CREATE DATABASE {$dbName}";
+            $conn->query($dropQuery);
+            $conn->query($createQuery);
+            $conn->close();
 
+            // Change DB host name
+            $conn = new \mysqli($host, $dbUser, $dbPwd, $dbName);
+            if ($conn->connect_error) {
+                die("Impossibile connetersi al database: " . $conn->connect_error);
+            }
+            $queryUnsecureUrl = "update core_config_data set value = '{$hostProtocol}://{$hostName}' where path = 'web/unsecure/base_url'; ";
+            $querySecureUrl = "update core_config_data set value = '{$hostProtocol}://{$hostName}' where path = 'web/secure/base_url';";
+            $conn->query($queryUnsecureUrl);
+            $conn->query($querySecureUrl);
+            $conn->close();
+        }
     }
 }
