@@ -64,9 +64,37 @@ class MagentoSetupCommand extends Command
             $vhostFilePath = $questionHelper->ask($input, $output, $question);
 
         } else {
-
-
+            $vhostConfigPath = "/etc/apache2/sites-available/{$hostName}";
+            $vhostContent = "
+                <VirtualHost *:80>
+                    ServerName {$hostName}
+                    ServerAdmin webmaster@localhost
+                    DocumentRoot {$hostPath}
+                    ErrorLog $\{APACHE_LOG_DIR}/{$hostName}_error.log
+                    CustomLog $\{APACHE_LOG_DIR}/{$hostName}_access.log combined
+                </VirtualHost>
+                # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+            ";
+            if (!is_writable(dirname($vhostConfigPath))) {
+                die("Cannot write virtual host configuration");
+            }
+            file_put_contents($vhostConfigPath, $vhostContent);
         }
+
+        $localXmlPath = rtrim($hostPath, "/") . "/app/etc/local.xml";
+        if (!is_readable($localXmlPath) || !is_writable($localXmlPath)) {
+            die("local.xml not writable");
+        }
+
+        // Change local XML
+        $localXmlContent = file_get_contents($localXmlPath);
+        $localXmlContent = preg_replace('/<host>.*?<\/host>/is', "<host><![CDATA[{$host}]]></host>", $localXmlContent);
+        $localXmlContent = preg_replace('/<username>.*?<\/username>/is', "<username><![CDATA[{$dbUser}]]></username>", $localXmlContent);
+        $localXmlContent = preg_replace('/<password><![CDATA[capim]]><\/password>/is', "<password><![CDATA[{$dbPwd}]]></password>", $localXmlContent);
+        $localXmlContent = preg_replace('/<dbname>.*?<\/dbname>/is', "<dbname><![CDATA[{$dbName}]]></dbname>", $localXmlContent);
+        $localXmlContent = preg_replace('/<session_save>.*?<\/session_save>/is', "<session_save><![CDATA[{$sessionSave}]]></session_save>", $localXmlContent);
+        file_put_contents($localXmlPath, $localXmlContent);
+
 
     }
 }
