@@ -122,18 +122,35 @@ class MagentoSetupCommand extends Command
             $createQuery = "CREATE DATABASE {$dbName}";
             $conn->query($dropQuery);
             $conn->query($createQuery);
-            $conn->close();
 
-            // Change DB host name
-            $conn = new \mysqli($host, $dbUser, $dbPwd, $dbName);
-            if ($conn->connect_error) {
-                die("Impossibile connetersi al database: " . $conn->connect_error);
+            $templine = '';
+            $lines = file($dbFilePath);
+            foreach ($lines as $line) {
+                // Skip it if it's a comment
+                if (substr($line, 0, 2) == '--' || $line == '') {
+                    continue;
+                }
+                // Add this line to the current segment
+                $templine .= $line;
+                // If it has a semicolon at the end, it's the end of the query
+                if (substr(trim($line), -1, 1) == ';') {
+                    // Perform the query
+                    $conn->query($templine);
+                    $templine = '';
+                }
             }
-            $queryUnsecureUrl = "update core_config_data set value = '{$hostProtocol}://{$hostName}' where path = 'web/unsecure/base_url'; ";
-            $querySecureUrl = "update core_config_data set value = '{$hostProtocol}://{$hostName}' where path = 'web/secure/base_url';";
-            $conn->query($queryUnsecureUrl);
-            $conn->query($querySecureUrl);
             $conn->close();
         }
+
+        // Change DB host name
+        $conn = new \mysqli($host, $dbUser, $dbPwd, $dbName);
+        if ($conn->connect_error) {
+            die("Impossibile connetersi al database: " . $conn->connect_error);
+        }
+        $queryUnsecureUrl = "update core_config_data set value = '{$hostProtocol}://{$hostName}' where path = 'web/unsecure/base_url'; ";
+        $querySecureUrl = "update core_config_data set value = '{$hostProtocol}://{$hostName}' where path = 'web/secure/base_url';";
+        $conn->query($queryUnsecureUrl);
+        $conn->query($querySecureUrl);
+        $conn->close();
     }
 }
