@@ -2,6 +2,7 @@
 
 namespace Cmhelp\Command\Magento;
 
+use Cmhelp\Utils\DbManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -122,30 +123,9 @@ class MagentoSetupCommand extends Command
 
             $output->writeln("Importing database ...");
 
-            $conn = new \mysqli($host, $dbUser, $dbPwd);
-            if ($conn->connect_error) {
-                die("Impossibile connetersi al database: " . $conn->connect_error);
-            }
-            $dropQuery = "DROP DATABASE {$dbName}";
-            $createQuery = "CREATE DATABASE {$dbName}";
-            $conn->query($dropQuery);
-            $conn->query($createQuery);
-            $conn->close();
-
-            $conn = new \mysqli($host, $dbUser, $dbPwd, $dbName);
-            $templine = '';
-            $lines = file($dbFilePath);
-            foreach ($lines as $line) {
-                if (substr($line, 0, 2) == '--' || $line == '') {
-                    continue;
-                }
-                $templine .= $line;
-                if (substr(trim($line), -1, 1) == ';') {
-                    $conn->query($templine);
-                    $templine = '';
-                }
-            }
-            $conn->close();
+            $dbManager = new DbManager($host, $dbUser, $dbPwd);
+            $dbManager->createDatabase($dbName, true);
+            $dbManager->importDatabaseFromFile($dbName, $dbFilePath);
         }
 
         $output->writeln("Changing database hostname ...");
