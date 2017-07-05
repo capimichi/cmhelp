@@ -3,6 +3,8 @@
 namespace Cmhelp\Command\Magento;
 
 use Cmhelp\Utils\DbManager;
+use Cmhelp\Utils\MageDbManager;
+use Cmhelp\Utils\MagerUserManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -70,6 +72,7 @@ class MagentoSetupCommand extends Command
         $question = new Question("OS (linux|osx) [linux] ", 'linux');
         $os = $questionHelper->ask($input, $output, $question);
 
+        $output->writeln("");
         $output->writeln("Creating vhost configuration ...");
 
         if ($os == "osx") {
@@ -122,7 +125,6 @@ class MagentoSetupCommand extends Command
         if ($dbFilePath) {
 
             $output->writeln("Importing database ...");
-
             $dbManager = new DbManager($host, $dbUser, $dbPwd);
             $dbManager->createDatabase($dbName, true);
             $dbManager->importDatabaseFromFile($dbName, $dbFilePath);
@@ -130,18 +132,16 @@ class MagentoSetupCommand extends Command
 
         $output->writeln("Changing database hostname ...");
 
-        $conn = new \mysqli($host, $dbUser, $dbPwd, $dbName);
-        if ($conn->connect_error) {
-            die("Impossibile connetersi al database: " . $conn->connect_error);
-        }
-
         $dbBaseUrl = $hostProtocol . "://" . rtrim($hostName, "/") . "/";
 
-        $queryUnsecureUrl = "update core_config_data set value = '{$dbBaseUrl}' where path = 'web/unsecure/base_url'; ";
-        $querySecureUrl = "update core_config_data set value = '{$dbBaseUrl}' where path = 'web/secure/base_url';";
-        $conn->query($queryUnsecureUrl);
-        $conn->query($querySecureUrl);
-        $conn->close();
+        $mageDbManager = new MageDbManager($host, $dbUser, $dbPwd);
+        $mageDbManager->changeBaseUrl($dbName, $dbBaseUrl);
+
+        $output->writeln("Creating user user: 'local' pwd: 'local'.");
+        $mageUserManager = new MagerUserManager($hostPath);
+        if (!in_array("local", $mageUserManager->getUsernames())) {
+            $mageUserManager->addAdmin("local", "local", "local", "tech@internetsm.com", "local");
+        }
 
         $output->writeln("Configuration completed, please restart apache.");
     }
