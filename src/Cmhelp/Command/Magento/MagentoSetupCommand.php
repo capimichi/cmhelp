@@ -3,8 +3,9 @@
 namespace Cmhelp\Command\Magento;
 
 use Cmhelp\Utils\DbManager;
+use Cmhelp\Utils\LinuxVirtualHostManager;
 use Cmhelp\Utils\MageDbManager;
-use Cmhelp\Utils\MagerUserManager;
+use Cmhelp\Utils\MageUserManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -80,31 +81,9 @@ class MagentoSetupCommand extends Command
             $vhostFilePath = $questionHelper->ask($input, $output, $question);
 
         } else {
-            $vhostConfigPath = "/etc/apache2/sites-available/{$hostName}.conf";
-            $vhostProdConfigPath = "/etc/apache2/sites-enabled/{$hostName}.conf";
-            if (!is_writable(dirname($vhostConfigPath)) || !is_writable(dirname($vhostProdConfigPath))) {
-                die("Cannot write virtual host configuration");
-            }
-            $vhostContent = "<VirtualHost *:80>\n\tServerName {$hostName}\n\tServerAdmin webmaster@localhost\n\tDocumentRoot {$hostPath}\n\tErrorLog $" . "{APACHE_LOG_DIR}/{$hostName}_error.log\n\tCustomLog $" . "{APACHE_LOG_DIR}/{$hostName}_access.log combined\n</VirtualHost>\n# vim: syntax=apache ts=4 sw=4 sts=4 sr noet";
-            file_put_contents($vhostConfigPath, $vhostContent);
-
-            if (!file_exists($vhostProdConfigPath)) {
-                symlink($vhostConfigPath, $vhostProdConfigPath);
-            }
-
-            $hostsPath = "/etc/hosts";
-            if (!is_readable($hostsPath) || !is_writable($hostsPath)) {
-                die("Cannot read/write {$hostsPath}");
-            }
-            $hostsContent = file_get_contents($hostsPath);
-
-            $hostLine = str_replace("localhost", "127.0.0.1", $host) . "\t" . $hostName;
-
-            if (!preg_match("/{$hostLine}/is", $hostsContent)) {
-                $hostsContent .= "\n{$hostLine}";
-            }
-
-            file_put_contents($hostsPath, $hostsContent);
+            $linuxVirtualHostManager = new LinuxVirtualHostManager();
+            $linuxVirtualHostManager->addVirtualHost($hostName);
+            $linuxVirtualHostManager->addHostname($host, $hostName);
         }
 
         $output->writeln("Changing local.xml ...");
@@ -138,7 +117,7 @@ class MagentoSetupCommand extends Command
         $mageDbManager->changeBaseUrl($dbName, $dbBaseUrl);
 
         $output->writeln("Creating user user: 'local' pwd: 'local'.");
-        $mageUserManager = new MagerUserManager($hostPath);
+        $mageUserManager = new MageUserManager($hostPath);
         if (!in_array("local", $mageUserManager->getUsernames())) {
             $mageUserManager->addAdmin("local", "local", "local", "tech@internetsm.com", "local");
         }

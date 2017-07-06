@@ -2,7 +2,7 @@
 
 namespace Cmhelp\Utils;
 
-class MagerUserManager
+class MageUserManager
 {
 
     /**
