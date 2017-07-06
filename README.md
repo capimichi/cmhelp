@@ -16,3 +16,8 @@ Then make it global script:
 ```bash
 sudo mv cmhelp.phar /usr/local/bin/cmhelp
 ```
+Then remove it:
+
+```bash
+sudo rm cmhelp.phar
+```
