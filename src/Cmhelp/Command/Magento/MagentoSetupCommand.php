@@ -15,6 +15,8 @@ use Symfony\Component\Console\Question\Question;
 
 class MagentoSetupCommand extends Command
 {
+
+
     protected function configure()
     {
         $this
@@ -30,54 +32,54 @@ class MagentoSetupCommand extends Command
     {
         $questionHelper = $this->getHelper('question');
 
-        $question = new Question("Hostname (website.local) [] ", null);
+        $question = new Question("<question>Hostname (website.local) []</question> ", null);
         $hostName = $questionHelper->ask($input, $output, $question);
 
         $hostNameWithoutExtension = preg_replace("/\.[^.]*$/is", "", $hostName);
 
-        $question = new Question("Host [localhost] ", 'localhost');
+        $question = new Question("<question>Host [localhost]</question> ", 'localhost');
         $host = $questionHelper->ask($input, $output, $question);
 
-        $question = new Question("Db User [root] ", 'root');
+        $question = new Question("<question>Db User [root]</question> ", 'root');
         $dbUser = $questionHelper->ask($input, $output, $question);
 
-        $question = new Question("Db Pwd [] ", '');
+        $question = new Question("<question>Db Pwd []</question> ", '');
         $dbPwd = $questionHelper->ask($input, $output, $question);
 
-        $question = new Question("Db Name [magento_{$hostNameWithoutExtension}] ", "magento_{$hostNameWithoutExtension}");
+        $question = new Question("<question>Db Name [magento_{$hostNameWithoutExtension}]</question> ", "magento_{$hostNameWithoutExtension}");
         $dbName = $questionHelper->ask($input, $output, $question);
 
-        $question = new Question("Db port [3306] ", '3306');
+        $question = new Question("<question>Db port [3306]</question> ", '3306');
         $dbPort = $questionHelper->ask($input, $output, $question);
 
-        $question = new Question("Db file path [] ", null);
+        $question = new Question("<question>Db file path []</question> ", null);
         $dbFilePath = $questionHelper->ask($input, $output, $question);
         $dbFilePath = $dbFilePath ? str_replace("'", "", $dbFilePath) : null;
 
         $hostPath = null;
-        $question = new Question("Website path (/var/www/website.com/) [] ", null);
+        $question = new Question("<question>Website path (/var/www/website.com/) []</question> ", null);
         while ($hostPath == null) {
             $hostPath = $questionHelper->ask($input, $output, $question);
             if (!file_exists(rtrim($hostPath, "/") . "/app/Mage.php")) {
                 $hostPath = null;
-                $output->writeln("ERROR: Not a Magento directory root");
+                $output->writeln("<error>ERROR: Not a Magento directory root</error>");
             }
         }
 
-        $question = new Question("Protocol (http|https) [http] ", 'http');
+        $question = new Question("<question>Protocol (http|https) [http] ", 'http');
         $hostProtocol = $questionHelper->ask($input, $output, $question);
 
-        $question = new Question("Session save (db|files) [db] ", 'db');
+        $question = new Question("<question>Session save (db|files) [db] ", 'db');
         $sessionSave = $questionHelper->ask($input, $output, $question);
 
-        $question = new Question("OS (linux|osx) [linux] ", 'linux');
+        $question = new Question("<question>OS (linux|osx) [linux] ", 'linux');
         $os = $questionHelper->ask($input, $output, $question);
 
         $output->writeln("");
         $output->writeln("Creating vhost configuration ...");
 
         if ($os == "osx") {
-            $question = new Question("Vhost file path (/Applications/XAMP/vhost.conf) [] ", null);
+            $question = new Question("<question>Vhost file path (/Applications/XAMP/vhost.conf) []</question> ", null);
             $vhostFilePath = $questionHelper->ask($input, $output, $question);
 
         } else {
@@ -122,6 +124,6 @@ class MagentoSetupCommand extends Command
             $mageUserManager->addAdmin("local", "local", "local", "tech@internetsm.com", "local");
         }
 
-        $output->writeln("Configuration completed, please restart apache.");
+        $output->writeln("<info>Configuration completed, please restart apache.</info>");
     }
 }

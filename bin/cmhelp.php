@@ -9,7 +9,7 @@ use Cmhelp\Command\Xdebug\PhpXdebugCommand;
 use Cmhelp\Command\Xdebug\PhpXdebugToggleCommand;
 use Symfony\Component\Console\Application;
 
-$application = new Application();
+$application = new Application("cmhelp", "1.0.0");
 
 $application->add(new PhpXdebugCommand());
 $application->add(new PhpXdebugToggleCommand());
