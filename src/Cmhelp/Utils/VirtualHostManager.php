@@ -8,7 +8,8 @@ abstract class VirtualHostManager
     protected $sitesAvailableDir;
     protected $sitesEnabledDir;
 
-    public function addVirtualHost($name)
+    
+    public function addVirtualHost($name, $path)
     {
         if (!is_writable($this->sitesAvailableDir) || !is_writable($this->sitesEnabledDir)) {
             throw new \Exception("Cannot write virtual host configuration");
@@ -36,7 +37,8 @@ abstract class VirtualHostManager
 
     /**
      * @param $name
+     * @param $path
      * @return string
      */
-    protected abstract function generateVirtualHostContent($name);
+    protected abstract function generateVirtualHostContent($name, $path);
 }
