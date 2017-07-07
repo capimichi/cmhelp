@@ -13,7 +13,7 @@ class LinuxVirtualHostManager extends VirtualHostManager
      */
     public function addVirtualHost($name, $path)
     {
-        parent::addVirtualHost($name);
+        parent::addVirtualHost($name, $path);
         $vhostContent = $this->generateVirtualHostContent($name, $path);
 
         $vhostConfigPath = "{$this->sitesAvailableDir}{$name}.conf";
