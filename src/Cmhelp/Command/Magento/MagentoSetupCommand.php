@@ -54,12 +54,12 @@ class MagentoSetupCommand extends Command
         $dbFilePath = $questionHelper->ask($input, $output, $question);
         $dbFilePath = $dbFilePath ? str_replace("'", "", $dbFilePath) : null;
 
-        $websitePath = null;
+        $hostPath = null;
         $question = new Question("Website path (/var/www/website.com/) [] ", null);
-        while ($websitePath == null) {
-            $websitePath = $questionHelper->ask($input, $output, $question);
-            if (!file_exists(rtrim($websitePath, "/") . "/app/Mage.php")) {
-                $websitePath = null;
+        while ($hostPath == null) {
+            $hostPath = $questionHelper->ask($input, $output, $question);
+            if (!file_exists(rtrim($hostPath, "/") . "/app/Mage.php")) {
+                $hostPath = null;
                 $output->writeln("ERROR: Not a Magento directory root");
             }
         }
@@ -82,13 +82,13 @@ class MagentoSetupCommand extends Command
 
         } else {
             $linuxVirtualHostManager = new LinuxVirtualHostManager();
-            $linuxVirtualHostManager->addVirtualHost($hostName, $websitePath);
+            $linuxVirtualHostManager->addVirtualHost($hostName);
             $linuxVirtualHostManager->addHostname($host, $hostName);
         }
 
         $output->writeln("Changing local.xml ...");
 
-        $localXmlPath = rtrim($websitePath, "/") . "/app/etc/local.xml";
+        $localXmlPath = rtrim($hostPath, "/") . "/app/etc/local.xml";
         if (!is_readable($localXmlPath) || !is_writable($localXmlPath)) {
             die("local.xml not writable");
         }
@@ -117,7 +117,7 @@ class MagentoSetupCommand extends Command
         $mageDbManager->changeBaseUrl($dbName, $dbBaseUrl);
 
         $output->writeln("Creating user user: 'local' pwd: 'local'.");
-        $mageUserManager = new MageUserManager($websitePath);
+        $mageUserManager = new MageUserManager($hostPath);
         if (!in_array("local", $mageUserManager->getUsernames())) {
             $mageUserManager->addAdmin("local", "local", "local", "tech@internetsm.com", "local");
         }
